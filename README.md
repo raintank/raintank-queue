@@ -49,7 +49,7 @@ consumer.on('message', function(topic, partition, msg) {
 });
 ```
 
-The Producer class provides a very simple interface for users send messages.  All messages are sent to the brokers 'pull' zeroMQ socket using a 'push' zeroMQ socket.
+The Producer class provides a very simple interface for users to send messages.  All messages are sent to the brokers 'pull' zeroMQ socket using a 'push' zeroMQ socket.
 
 ```
 var queue = require('raintank-queue');
