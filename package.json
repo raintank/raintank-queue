@@ -1,0 +1,11 @@
+{
+  "name": "raintank-queue",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "lodash": "*",
+    "zmq": "*",
+    "socket.io": "*",
+    "socket.io-client": "*"
+  }
+}
