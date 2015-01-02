@@ -10,9 +10,9 @@ setInterval(function(){
 	//console.log('sending work');
 	for (var j=0;j<10;j++) {
 	  var payload = [];
-	  for (var i=0;i<10;i++) {
+	  //for (var i=0;i<10;i++) {
 	  	payload.push({a:'a', b: Math.random()});
-	  }
+	  //}
 	  publisher.send('topic1', payload);
  	}
-}, 1000);
+}, 0);
