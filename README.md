@@ -52,8 +52,8 @@ consumer.on('message', function(topic, partition, msg) {
 The Producer class provides a very simple interface for users to send messages.  All messages are sent to the brokers 'pull' zeroMQ socket using a 'push' zeroMQ socket.
 
 ```
-var queue = require('raintank-queue');
-var publisher = new queue.Publisher({
+var publisher = require('raintank-queue').Publisher;
+publisher.init({
 	publisherSocketAddr: 'tcp://127.0.0.1:9997',
 	partitions: 10,
 });
