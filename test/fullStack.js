@@ -14,13 +14,14 @@ var consumer = new queue.Consumer({
 	mgmtUrl: "http://localhost:9999"
 });
 
-var publisher = new queue.Publisher({
+var publisher = queue.Publisher;
+publisher.init({
 	publisherSocketAddr: 'tcp://127.0.0.1:9997',
 	partitions: 10,
 });
 
 consumer.on('connect', function() {
-	consumer.join('topic1', 'test');
+	consumer.join('topic2', 'test');
 });
 
 consumer.on('message', function(topic, partition, msg) {
@@ -37,3 +38,6 @@ setInterval(function(){
 	  publisher.send('topic1', j, payload);
  	}
 }, 0);
+
+var t = require('./test');
+t.test();
