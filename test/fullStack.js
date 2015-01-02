@@ -38,6 +38,3 @@ setInterval(function(){
 	  publisher.send('topic1', j, payload);
  	}
 }, 0);
-
-var t = require('./test');
-t.test();
