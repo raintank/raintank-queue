@@ -3,6 +3,11 @@ raintank-queue
 
 Nodejs Message queue using ZMQ and socket.io
 
+To install
+```
+npm install raintank/raintank-queue
+```
+
 This module provides a fast message delivery system for Nodejs that supports dynamic scaling of publishers and consumers.
 
 The module provides three classes; Broker, Consumer, Publisher.
@@ -11,7 +16,7 @@ The Broker class provides a message broker server.  The broker server utilizes a
 
 
 ```
-var queue = require('../');
+var queue = require('raintank-queue');
 //Start a broker.
 var broker = new queue.Broker({
 	consumerSocketAddr: 'tcp://0.0.0.0:9998',  //address that consumers will connect to.
@@ -28,6 +33,7 @@ The consumer class provides a simple interface for users to consume messages fro
 Consumer can then just listen for the 'message' event and process the the provided messages.  The 'msg' argument provided to the 'message' event will always be an array of 1 or more messages.
 
 ```
+var queue = require('raintank-queue');
 var consumer = new queue.Consumer({
 	mgmtUrl: "http://localhost:9999"
 });
@@ -46,7 +52,7 @@ consumer.on('message', function(topic, partition, msg) {
 The Producer class provides a very simple interface for users send messages.  All messages are sent to the brokers 'pull' zeroMQ socket using a 'push' zeroMQ socket.
 
 ```
-var queue = require('../');
+var queue = require('raintank-queue');
 var publisher = new queue.Publisher({
 	publisherSocketAddr: 'tcp://127.0.0.1:9997',
 	partitions: 10,
