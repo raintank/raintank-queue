@@ -8,10 +8,11 @@ var broker = new queue.Broker({
 	mgmtUrl: "http://0.0.0.0:9999", //port the management Socket.io server should listen on.
 	flushInterval: 100, //how long to buffer messages before sending to comsumers.
 	partitions: 10 //how man partitions the topic should be split into.
-});;
+});
 
 var consumer = new queue.Consumer({
-	mgmtUrl: "http://localhost:9999"
+	mgmtUrl: "http://localhost:9999",
+	consumerSocketAddr: "tcp://localhost:9998"
 });
 
 var publisher = queue.Publisher;
