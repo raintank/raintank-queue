@@ -1,67 +1,67 @@
 raintank-queue
 ==============
 
-Nodejs Message queue using ZMQ and socket.io
+Nodejs Message queue rabbitMQ
 
 To install
 ```
 npm install raintank/raintank-queue
 ```
 
-This module provides a fast message delivery system for Nodejs that supports dynamic scaling of publishers and consumers.
+This module provides wrapper for the amqplib module to handle errors and disconnections from the rabbitMQ server.
+If an error occurs while trying to publish, the publish method will try up to 'retryCount' time before giving up.
+If an error occurs while consuming, the consumer will try and restart up to 'retryCount' times, or keep trying forever if retryCount is less then 0
 
-The module provides three classes; Broker, Consumer, Publisher.
+Usage
+=====
 
-The Broker class provides a message broker server.  The broker server utilizes a Socket.io server for managing the consumers a 'pull' zeroMQ socket for accepting messages from publishers, and a zeroMQ 'pub' socket for send messages to consumers.
-
-
-```
-var queue = require('raintank-queue');
-//Start a broker.
-var broker = new queue.Broker({
-	consumerSocketAddr: 'tcp://0.0.0.0:9998',  //address that consumers will connect to.
-	publisherSocketAddr: 'tcp://0.0.0.0:9997', //address that publishers will connect to.
-	mgmtUrl: "http://0.0.0.0:9999",            //address the management Socket.io server should listen on.
-	flushInterval: 100,                        //how long to buffer messages before sending to comsumers.
-	partitions: 10                             //how man partitions the topics should be split into.
-});
-```
-When a consumer connects and sends a 'join' message to indicate the topics that it wishes to recieve, the broker pauses message delivery and issues a 'rebalance' event to each consumer providing the list of 'topcic:partition' pairs that the consumer should start consuming from.  When rebalancing, the consumer connects to the ZeroMQ 'pub' socket on the broker using a 'sub' socket. The consumer then sends a 'subscribe' message on this socket for each 'topic:partition' pair it is responsible for. Once all consumers have rebalanced, message delivery resumes.
-
-The consumer class provides a simple interface for users to consume messages from one or more topics.  Users should join topics whenever the consumer emits the 'connect' event.  This ensures that if consumer loses connection with the broker, due to broker restart or network issues, then the consumer will automatically re-join the topics when connectivity is restored.
-
-Consumer can then just listen for the 'message' event and process the the provided messages.  The 'msg' argument provided to the 'message' event will always be an array of 1 or more messages.
+Producer (send messages to the queue/exchange);
 
 ```
-var queue = require('raintank-queue');
-var consumer = new queue.Consumer({
-	mgmtUrl: "http://localhost:9999"
-});
-consumer.on('connect', function() {
-  // consume from the the topic 'topic1' using the group 'test'.
-  // consumers using the same group will have messages distributed between them.
-  // consumers using different group names, will get their own copy of the messages.
-	consumer.join('topic1', 'test');
+var Producer = require('raintank-queue').Producer;
+
+var p = new Producer({
+	url: "amqp://localhost",
+	exchangeName: "ex1",  //exchange name
+	exchangeType: "fanout", //exchange type.
+	retryCount: 5,  // how many times to try sending the message before giving up.
+	retryDelay: 1000, // delay between each retry.
 });
 
-consumer.on('message', function(topic, partition, msg) {
-	console.log("%s:%s - %j", topic, partition, msg);
-});
-```
-
-The Producer class provides a very simple interface for users to send messages.  All messages are sent to the brokers 'pull' zeroMQ socket using a 'push' zeroMQ socket.
-
-```
-var publisher = require('raintank-queue').Publisher;
-publisher.init({
-	publisherSocketAddr: 'tcp://127.0.0.1:9997',
-	partitions: 10,
+p.publish(JSON.stringify({id: 1, data: "text"}), function(err) {
+	if (err) {
+	    console.log("error publishing message.", err);
+	}
+	//else mesage was sent successfully.
 });
 
-//send a message to the broker.  'partition' is optional and if omitted the message will be sent to random partition.
-// 'messages' should be an array.
-publisher.send('topic1', partition, messages);
-
 ```
 
+Consumer  (recieve messages from the queue.)
+
+```
+var Consumer = require('raintank-queue').Consumer;
+var c = new Consumer({
+	url: "amqp://localhost",
+    exchangeName: "ex1",  //this should match the name of the exchange the producer is using.
+    exchangeType: "fanout", // this should match the exchangeType the producer is using.
+    queueName: '', //leave blank for an auto generated name. recommend when creating an exclusive queue.
+    exclusive: true, //make the queue exclusive.
+    durable: false,
+    autoDelete: true,
+    queuePattern: null, //fanout exchanges get all messages, so we dont need to bind with a pattern.
+    retryCount: -1, // keep trying to connect forever.
+    handler: processMessage
+});
+
+function processMessage(message) {
+	console.log(message.content.toString());
+}
+
+c.on('error', function(err) {
+	console.log("consumer emitted fatal error.")
+    console.log(err);
+    process.exit(1);
+});
+```
 
